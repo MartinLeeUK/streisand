@@ -1,0 +1,46 @@
+---
+- name: Remove the 'streisand' SSH key from Amazon.
+  ec2_key:
+    name: streisand-ssh
+    state: absent
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ aws_region }}"
+    wait: yes
+
+
+- name: Stop the EC2 instance
+  ec2:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ aws_region }}"
+    instance_tags:
+      Name: "{{ aws_instance_name }}"
+    wait: yes
+    state: stopped
+  register: streisand_server
+
+- name: Delete CloudWatch alarm
+  ec2_metric_alarm:
+    name: "autorecover-{{ aws_instance_name }}"
+    state: absent
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ aws_region }}"
+
+- name: Release Elastic IP
+  ec2_eip:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ aws_region }}"
+    device_id: "{{ streisand_server.instances[0].id }}"
+    in_vpc: "{{ aws_vpc_id is defined and aws_vpc_id != '' }}"
+    release_on_disassociation: yes
+    state: absent
+    
+- name: Create the in-memory inventory group
+  add_host:
+    name: "{{ instance_eip.public_ip }}"
+    groups: streisand-host
+    ansible_user: ubuntu
+    ansible_become: yes

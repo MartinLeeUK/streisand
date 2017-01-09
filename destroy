@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Streisand provisioning script
+
+set -e
+
+echo
+echo -e "\033[38;5;255m\033[48;5;234m\033[1m  D E S T R O Y  \033[0m"
+echo
+
+command -v ansible > /dev/null 2>&1 || {
+  echo "Ansible is not installed."
+  exit 1
+}
+
+required_ansible_version="2.1.1.0"
+
+if [[ "$(ansible --version | grep -oe '2\(.[0-9]\)*')" < $required_ansible_version ]]
+then
+    echo "Ansible $required_ansible_version or higher is required."
+    exit 1
+fi
+
+echo -n "Currently only Amazon is available, do you wish to continue? [y/n]
+: "
+
+read reply
+
+case "$reply" in
+  y) echo; echo; ansible-playbook playbooks/amazon-destroy.yml;;
+  *) echo; echo "Goodbye."; exit 1;;
+esac
