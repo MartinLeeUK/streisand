@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Streisand provisioning script
+# Streisand destruction script
 
 set -e
 
@@ -20,7 +20,7 @@ then
     exit 1
 fi
 
-echo -n "Currently only Amazon is available, do you wish to continue? [y/n]
+echo -n "Destruction is only supported for AWS, do you wish to continue? [y/n]
 : "
 
 read reply
